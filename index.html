@@ -1,16 +1,4 @@
-<!doctype html>
-<html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
-<style>
-  :root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-  html,body{margin:0}
-  body{font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#faf9f7}
-  img{max-width:100%}
-  [hidden]{display:none!important}
-</style>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>미래의 내 가족</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -213,7 +201,7 @@ details.model .body{padding:0 12px 12px;font-size:13px;color:var(--ink2)}
 .lgnote{font-size:12px;color:var(--ink2);margin-top:7px;line-height:1.5}
 .idbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:18px;box-shadow:var(--shadow)}
 .idbar label{font-size:13px;font-weight:700;color:var(--ink2)}
-.idbar input{border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-family:inherit;font-size:14px;background:var(--surface2);color:var(--ink);width:150px}
+.idbar input{border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-family:inherit;font-size:14px;background:var(--surface2);color:var(--ink);flex:1 1 200px;min-width:170px;max-width:280px}
 .idbar input:focus{outline:2px solid var(--dom);outline-offset:1px}
 .idbar .idnote{font-size:12px;color:var(--ink2);margin-left:auto}
 .pickhint{font-size:12px;color:var(--ink2);text-align:center;margin:8px 0 0}
@@ -248,8 +236,7 @@ details.model .body{padding:0 12px 12px;font-size:13px;color:var(--ink2)}
 .callout{font-size:12.5px;color:var(--ink2);background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:9px 12px;margin-top:14px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
-</head>
-<body>
+
 <div class="wrap">
 
   <header class="masthead">
@@ -272,10 +259,8 @@ details.model .body{padding:0 12px 12px;font-size:13px;color:var(--ink2)}
     <p class="lede">먼저 가계도로 우열 관계를 판단하는 연습부터. 그다음 7가지 형질에 대한 나의 표현형과 유전자형을 정합니다.</p>
 
     <div class="idbar">
-      <label for="stuNo">학번</label>
-      <input id="stuNo" type="text" inputmode="numeric" maxlength="12" placeholder="예) 30512" autocomplete="off">
-      <label for="stuName">이름</label>
-      <input id="stuName" type="text" maxlength="20" placeholder="예) 김과학" autocomplete="off">
+      <label for="playerTag">반+닉네임</label>
+      <input id="playerTag" type="text" maxlength="24" placeholder="예) 3반 완두왕" autocomplete="off">
       <span class="idnote">저장하는 가족 이미지에 함께 표시됩니다</span>
     </div>
 
@@ -492,7 +477,7 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 var SKINS = ['#F7D9BE','#EFC29B','#D9A273','#B87B4E','#8E5A34'];
 var HAIRS = ['#2B2118','#4A3323','#7B4A2A','#C08A3E','#B9BEC4'];
 var state = {
-  student:{no:'', name:''},
+  player:'',
   step:1,
   me:{ look:{skin:1,hair:0,sex:'m'}, g:{}, ph:{} },
   sp:{ look:{skin:2,hair:1,sex:'f'}, g:{}, ph:{} },
@@ -834,7 +819,7 @@ function gateOk(n){
   return g.need.every(function(k){ return solved[k]; });
 }
 function reachable(n){
-  if(n>=2 && !(state.student.no && state.student.name)) return false;
+  if(n>=2 && !state.player) return false;
   if(n>=2 && !allChosen('me')) return false;
   if(n>=3 && !allChosen('sp')) return false;
   if(!gateOk(n)) return false;
@@ -867,9 +852,9 @@ function renderRail(){
 }
 
 function go(n){
-  if(n>=2 && !(state.student.no && state.student.name)){
-    toast('학번과 이름을 먼저 입력해 주세요.');
-    var f = document.getElementById(state.student.no ? 'stuName' : 'stuNo');
+  if(n>=2 && !state.player){
+    toast('반과 닉네임을 먼저 입력해 주세요.');
+    var f = document.getElementById('playerTag');
     if(f) f.focus();
     return;
   }
@@ -1365,12 +1350,11 @@ function composeFamilyCanvas(){
   ctx.fillStyle = '#53666F';
   ctx.font = '400 15px "Noto Sans KR", sans-serif';
   ctx.fillText('중학교 과학 3 · Ⅴ. 생식과 유전 › 2. 유전', PAD, 76);
-  var stu = [state.student.no, state.student.name].filter(Boolean).join('  ');
-  if(stu){
+  if(state.player){
     ctx.textAlign = 'right';
     ctx.fillStyle = '#16222B';
     ctx.font = '700 20px "Noto Sans KR", sans-serif';
-    ctx.fillText(stu, W - PAD, 56);
+    ctx.fillText(state.player, W - PAD, 56);
     ctx.textAlign = 'left';
   }
 
@@ -1399,6 +1383,11 @@ function composeFamilyCanvas(){
     return cv;
   });
 }
+/* 저장 파일명 앞에 붙일 "반_닉네임_" (파일명에 쓸 수 없는 문자는 _ 로 바꿈) */
+function safeTag(){
+  var t = (state.player || '').replace(/[\\/:*?"<>|\s]+/g, '_');
+  return t ? t + '_' : '';
+}
 function openFamilyImage(){
   composeFamilyCanvas().then(function(cv){
     if(!cv){ toast('먼저 두 자녀를 모두 만들어 주세요.'); return; }
@@ -1415,12 +1404,11 @@ function openFamilyImage(){
     if(!(window.claude && window.claude.use)){
       var a = document.createElement('a');
       if('download' in a){
-        var stu0 = [state.student.no, state.student.name].filter(Boolean).join('_');
         saveBtn.hidden = false;
         hint.textContent = '';
         saveBtn.onclick = function(){
           a.href = url;
-          a.download = (stu0 ? stu0 + '_' : '') + '미래의_내_가족.png';
+          a.download = safeTag() + '미래의_내_가족.png';
           document.body.appendChild(a); a.click(); a.remove();
           hint.textContent = '저장했어요!';
         };
@@ -1433,8 +1421,7 @@ function openFamilyImage(){
         saveBtn.hidden = false;
         saveBtn.onclick = function(){
           cv.toBlob(function(blob){
-            var stu2 = [state.student.no, state.student.name].filter(Boolean).join('_');
-          dl.save({filename: (stu2 ? stu2 + '_' : '') + '미래의_내_가족.png', data: blob}).then(function(){
+          dl.save({filename: safeTag() + '미래의_내_가족.png', data: blob}).then(function(){
               hint.textContent = '저장했어요!';
             }).catch(function(err){
               hint.textContent = (err && err.code==='declined') ? '저장을 취소했어요.' : '저장하지 못했어요. 이미지를 길게 눌러 저장해 보세요.';
@@ -1504,13 +1491,13 @@ inquiry('note5', {
 });
 
 
-['stuNo','stuName'].forEach(function(id){
-  var el = document.getElementById(id);
+(function(){
+  var el = document.getElementById('playerTag');
   el.addEventListener('input', function(){
-    state.student[id==='stuNo' ? 'no' : 'name'] = el.value.trim();
+    state.player = el.value.trim();
     renderRail();
   });
-});
+})();
 document.getElementById('note4').hidden = true;
 renderRail();
 renderTraits('meTraits','me'); renderLooks('meLooks','me'); drawAvatar('me');
@@ -1555,5 +1542,5 @@ document.getElementById('restart').addEventListener('click', function(){
 
 })();
 </script>
-</body>
-</html>
+
+</body></html>
