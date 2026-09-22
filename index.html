@@ -1,20 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="중학교 3학년 과학 Ⅴ. 생식과 유전 - 나와 배우자의 유전형질을 골라 자녀의 유전형질을 예상해 보는 사람의 유전 모의 활동">
-<meta name="theme-color" content="#EDF2F1">
-<style>
-  html{color-scheme:light dark}
-  :root{
-    padding-top:env(safe-area-inset-top, 0px);
-    padding-bottom:env(safe-area-inset-bottom, 0px);
-  }
-  html{scroll-padding-top:env(safe-area-inset-top, 0px)}
-  body{margin:0}
-  [hidden]{display:none !important}
-</style>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>미래의 내 가족</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -251,9 +235,9 @@ details.model .body{padding:0 12px 12px;font-size:13px;color:var(--ink2)}
 @media(prefers-reduced-motion:reduce){.keynote,.keynote .kico{animation:none}}
 .callout{font-size:12.5px;color:var(--ink2);background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:9px 12px;margin-top:14px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.chipwrap{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+#teacherChip{background:var(--accentSoft);border-color:var(--accent);color:var(--ink);font-weight:700}
 </style>
-</head>
-<body>
 
 <div class="wrap">
 
@@ -263,7 +247,10 @@ details.model .body{padding:0 12px 12px;font-size:13px;color:var(--ink2)}
       <h1>유전 원리로 알아보는<br><em>미래의 내 가족</em></h1>
       <p class="sub">나의 형질을 정하고, 생식세포를 만들고, 태어날 자녀의 형질을 직접 예상해 보는 모의 활동</p>
     </div>
-    <div class="chip-unit">형질 7가지 · 자녀 2명</div>
+    <div class="chipwrap">
+      <div class="chip-unit" id="teacherChip" hidden>교사 모드 · 탐구 질문 없이 모든 단계 열림</div>
+      <div class="chip-unit">형질 7가지 · 자녀 2명</div>
+    </div>
   </header>
 
   <nav class="rail" aria-label="활동 단계">
@@ -502,6 +489,9 @@ var state = {
   kids:[],
   cur:0
 };
+/* 교사 모드 — 주소 끝에 ?teacher 또는 #teacher 를 붙이면
+   탐구 질문을 맞히지 않아도 모든 단계로 이동할 수 있고, 결과 이미지 저장도 열립니다. */
+var TEACHER = /teacher/i.test(window.location.search + window.location.hash);
 // 형질은 학생이 직접 고르기 전까지 비어 있다
 function allChosen(key){
   var g = state[key].g;
@@ -832,6 +822,7 @@ var GATE = {
   6:{need:['note5'], msg:'STEP 5의 탐구 질문을 먼저 맞혀 주세요.'}
 };
 function gateOk(n){
+  if(TEACHER) return true;
   var g = GATE[n];
   if(!g) return true;
   return g.need.every(function(k){ return solved[k]; });
@@ -886,6 +877,8 @@ function go(n){
     document.getElementById('panel'+i).hidden = (i!==n);
   }
   renderRail();
+  if(TEACHER && n===3) renderMeiosis();
+  if(TEACHER && n===4) renderPredict();
   if(n===5) renderFamily();
   if(n===6) renderPunnett();
   window.scrollTo({top:0, behavior:'smooth'});
@@ -1237,6 +1230,9 @@ function updateSaveState(){
   if(n === ids.length){
     sb.disabled = false;
     hint.textContent = '확률 문제를 모두 맞혔어요! 가족 비교 이미지를 저장할 수 있습니다.';
+  } else if(TEACHER){
+    sb.disabled = false;
+    hint.textContent = '교사 모드 — 확률 문제 ' + n + ' / ' + ids.length + ' 완료. 저장 기능을 미리 확인할 수 있어요.';
   } else {
     sb.disabled = true;
     hint.textContent = '확률 문제 ' + n + ' / ' + ids.length + ' 완료 — 7가지 형질을 모두 맞히면 저장할 수 있어요.';
@@ -1558,7 +1554,78 @@ document.getElementById('restart').addEventListener('click', function(){
   go(1);
 });
 
+/* ===== 교사 모드 =====
+   주소 끝에 ?teacher 를 붙이면 샘플 형질과 자녀 2명이 미리 채워진 상태로 열려
+   탐구 질문을 풀지 않고도 6단계를 모두 눌러 볼 수 있습니다. */
+function teacherFill(){
+  var MEG = {hair:'Rr', lid:'Gg', dimp:'Dd', roll:'Tt', frec:'Ff', thumb:'Hh', abo:'AO'};
+  var SPG = {hair:'Rr', lid:'gg', dimp:'Dd', roll:'tt', frec:'Ff', thumb:'Hh', abo:'BO'};
+  function fillParent(key, G){
+    var person = state[key];
+    person.g = {}; person.ph = {};
+    TRAITS.forEach(function(t){
+      person.g[t.id] = G[t.id];
+      person.ph[t.id] = (G[t.id].indexOf(t.sym) >= 0) ? 'dom' : 'rec';
+    });
+    person.g.abo = G.abo;
+    person.ph.abo = bloodPheno(G.abo);
+  }
+  fillParent('me', MEG);
+  fillParent('sp', SPG);
+
+  var rows = TRAITS.concat([{id:'abo', label:'ABO 혈액형', sym:null}]);
+  state.kids = [];
+  for(var i=0;i<2;i++){
+    var kid = { gm:{me:{}, sp:{}}, ans:{}, lock:{}, checked:true };
+    rows.forEach(function(t){
+      var a = state.me.g[t.id], b = state.sp.g[t.id];
+      kid.gm.me[t.id] = pick([a.charAt(0), a.charAt(1)]);
+      kid.gm.sp[t.id] = pick([b.charAt(0), b.charAt(1)]);
+    });
+    kid.g = {};
+    rows.forEach(function(t){
+      kid.g[t.id] = answerFor(kid, t);
+      kid.ans[t.id] = kid.g[t.id];
+      kid.lock[t.id] = true;
+    });
+    var ph = {};
+    TRAITS.forEach(function(t){ ph[t.id] = pheno(t, kid.g[t.id]); });
+    ph.abo = bloodPheno(kid.g.abo);
+    var sex = i === 0 ? 'm' : 'f';
+    kid.pheno = ph;
+    kid.sex = sex;
+    kid.look = {
+      skin: Math.round((state.me.look.skin + state.sp.look.skin) / 2),
+      hair: i === 0 ? state.me.look.hair : state.sp.look.hair,
+      sex: sex
+    };
+    state.kids.push(kid);
+  }
+  state.cur = 1;
+
+  ['warmQ','note1','note2','note3','note4','note5'].forEach(function(k){ solved[k] = true; });
+  rows.forEach(function(t){ punnDone[t.id] = true; });
+}
+
+if(TEACHER){
+  var tchip = document.getElementById('teacherChip');
+  if(tchip) tchip.hidden = false;
+  var pf = document.getElementById('playerTag');
+  if(pf && !pf.value.trim()){
+    pf.value = '교사 모드';
+    state.player = '교사 모드';
+  }
+  teacherFill();
+  renderTraits('meTraits','me'); renderLooks('meLooks','me'); drawAvatar('me');
+  renderTraits('spTraits','sp'); renderLooks('spLooks','sp'); drawAvatar('sp');
+  var tp = document.getElementById('toPredict');
+  if(tp) tp.disabled = false;
+  updateTitles();
+  renderRail();
+  updateSaveState();
+}
+
 })();
 </script>
-</body>
-</html>
+
+</body></html>
